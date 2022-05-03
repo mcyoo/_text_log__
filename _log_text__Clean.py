@@ -9,14 +9,39 @@ search_line_end = "↑↑↑ 찾으시는 단어 또는 문장을 한 줄씩 입
 filter_line_start = "↓↓↓ 시작하는 단어 또는 문장 ~ 끝나는 단어 또는 문장을 입력해주세요. (start) 예시 : 김치볶음밥~간장밥 ↓↓↓"
 filter_line_end = "↑↑↑ 시작하는 단어 또는 문장 ~ 끝나는 단어 또는 문장을 입력해주세요. (end) ↑↑↑"
 
-#filter_search_line_start = "↓↓↓ 시작하는 단어 또는 문장 ~ 찾는 단어 또는 문장 ~ 끝나는 단어 또는 문장을 입력해주세요. (start) 예시 : 김치볶음밥~김치~간장밥 ↓↓↓ "
-#filter_search_line_end = "↑↑↑ 시작하는 단어 또는 문장 ~ 찾는 단어 또는 문장 ~ 끝나는 단어 또는 문장을 입력해주세요. (end) ↑↑↑"
 user_file_name = 'save.txt'
 
+# 매개변수 file 안에 hostname을 반환하는 함수
+# ex) SCH_01#show run <- 에서 SCH_01 을 반환
+# 이 프로그램에서 사용 안함
 
-# 사용자가 입력한 파일 불러오기 search_line
-# 입력 없음
-# 출력 list
+
+def name(file):
+    name = 0
+    file.seek(0)
+    while True:
+        line = file.readline()
+        hop = line.count('#')
+        if not line:
+            break
+        if hop == 0 or hop > 5:
+            continue
+        else:
+            temp = line
+            for i in range(0, hop):
+                name += temp.find('#')
+                name += 1
+                temp = line[name:]
+                i += 1
+
+            line = line[:name-1]
+            break
+
+    return line
+
+
+# 사용자가 입력한 파일 불러오기 (찾기)
+
 def user_save_file1():
     with open(user_file_name, 'r') as file:
         lines = file.readlines()
@@ -34,11 +59,9 @@ def user_save_file1():
         if line.find(search_line_start) >= 0:
             line_get = True
 
-    return enter_key_del(user_search_lines)
+    return user_search_lines
 
-# 사용자가 입력한 파일 불러오기 filter_line
-# 입력 없음
-# 출력 list
+# 사용자가 입력한 파일 불러오기 (필터)
 
 
 def user_save_file2():
@@ -58,7 +81,7 @@ def user_save_file2():
         if line.find(filter_line_start) >= 0:
             line_get = True
 
-    return enter_key_del(user_filter_lines)
+    return user_filter_lines
 
 
 # 엑셀 문서를 만드는 함수
@@ -76,8 +99,6 @@ def excelOpen():
     return wb
 
 # 파일에서 사용자가 입력한 단어 또는 문장을 찾는다.
-# 입력 : file, list
-# 출력 : list
 
 
 def find_user_search(file, user_search_lines):
@@ -93,8 +114,6 @@ def find_user_search(file, user_search_lines):
     return log
 
 # 파일에서 사용자가 입력한 단어 또는 문장에 시작 과 끝을 필터링 한다.
-# 입력 : file, list
-# 출력 : list
 
 
 def find_user_filter(file, user_filter_lines):
@@ -124,12 +143,18 @@ def find_user_filter(file, user_filter_lines):
                 break
     return log
 
+# 파일 리스트에  있는 파일을 하나씩 열면서 사용자가 입력한 정보를 찾아엑셀 시트에 저장한다
+
 
 def wb_create_sheets(wb, file_list):
 
     # 사용자가 저장한 텍스트 파일 가져오기
     user_search_lines = user_save_file1()
     user_filter_lines = user_save_file2()
+
+    # /n 키 삭제
+    user_search_lines = enter_key_del(user_search_lines)
+    user_filter_lines = enter_key_del(user_filter_lines)
 
     excel_index_log1 = 1
     excel_index_log2 = 1
@@ -144,6 +169,7 @@ def wb_create_sheets(wb, file_list):
         log1 = find_user_search(f, user_search_lines)
         log2 = find_user_filter(f, user_filter_lines)
 
+        # /n 키 삭제
         log1 = enter_key_del(log1)
         log2 = enter_key_del(log2)
 
@@ -187,10 +213,12 @@ def wbsave(wb):
     try:
         wb.save("수집된 엑셀파일.xlsx")
         print('엑셀 저장 완료(입력하신 파일 경로에 파일이 저장되었습니다. 엑셀 이름 : 수집된 엑셀파일.xlsx')
-        return wb
     except Exception as ex:  # 에러 종류
         print('엑셀 저장 에러(엑셀 프로그램을 모두 끄고 다시 실행해주세요.)', ex)
         return -1
+    return wb
+
+# 입력받는 input_list 안에 \n 키 삭제
 
 
 def enter_key_del(input_list):
@@ -207,10 +235,10 @@ def enter_key_del(input_list):
 def wbclose(wb):
     try:
         wb.close()
-        return wb
     except Exception as ex:  # 에러 종류
         print('엑셀 프로세스 에러(엑셀 프로그램을 모두 끄고 다시 실행해주세요.)', ex)
         return -1
+    return wb
 
 
 #!! MAIN!!

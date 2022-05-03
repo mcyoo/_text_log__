@@ -1,7 +1,9 @@
 ﻿import os
 import codecs
 
-# 파일안에 hostname을 추출하는 함수 현재 사용 X
+# 매개변수 file 안에 hostname을 반환하는 함수
+# ex) SCH_01#show run <- 에서 SCH_01 을 반환
+# 이 프로그램에서 사용 안함
 
 
 def name(file):
